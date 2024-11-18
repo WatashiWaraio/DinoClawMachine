@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Máquina de Peluches</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="status-section">
+            <h2>Máquina de Peluches</h2>
+            <div id="machineStatus" class="machine-status"></div>
+        </div>
+        
+        <div class="control-panel">
+            <button id="coinButton" class="game-button">Insertar Moneda</button>
+            <div class="game-stats">
+                <span>Monedas: <span id="coinCount">0</span></span>
+                <span>Intentos: <span id="attemptCount">0</span></span>
+                <span>Puntuación: <span id="scoreCount">0</span></span>
+            </div>
+        </div>
+
+        <div class="game-area">
+            <!-- <div class="claw"></div> -->
+            <div id="gameGrid" class="game-grid"></div>
+            
+        </div>
+
+        <div class="control-info">
+            Controles: W/A/S/D para mover, Espacio para agarrar
+        </div>
+    </div>
+    <script src="App.js"></script>
+</body>
+</html>
