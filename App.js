@@ -2,7 +2,6 @@ class GameState {
     constructor() {
         this.coins = 0;
         this.attempts = 0;
-        this.score = 0;
         this.status = 'Esperando Moneda';
     }
 
@@ -10,7 +9,7 @@ class GameState {
         if (this.coins === 0) {
             this.coins = 1;
             this.attempts = 3;
-            this.status = 'Listo para Jugar';
+            this.status = 'Activo';
             return true;
         }
         return false;
@@ -24,13 +23,11 @@ class GameState {
         return false;
     }
 
-    incrementScore() {
-        this.score++;
-    }
 
     resetGame() {
         this.coins = 0;
         this.attempts = 0;
+
         this.status = 'Esperando Moneda';
     }
 }
@@ -39,8 +36,9 @@ class ClawMachine {
     constructor() {
         this.gridSize = 3;
         this.state = new GameState();
-        this.clawPosition = { x: 1, y: 1 };
-        
+        this.clawX=265;
+        this.clawY=230;
+        this.images=["'peluche1.png'","'peluche2.png'","'peluche3.png'"]
         this.initializeDOM();
         this.setupEventListeners();
     }
@@ -50,12 +48,9 @@ class ClawMachine {
         this.outputZone = document.getElementById('outputZone');
         this.coinButton = document.getElementById('coinButton');
         this.machineStatus = document.getElementById('machineStatus');
-        this.coinCount = document.getElementById('coinCount');
         this.attemptCount = document.getElementById('attemptCount');
-        this.scoreCount = document.getElementById('scoreCount');
-
+        document.getElementById('garra').textContent="x";
         this.createGrid();
-        this.createClaw();
         this.updateDisplay();
     }
 
@@ -69,35 +64,32 @@ class ClawMachine {
             if (i === this.gridSize * this.gridSize - 1) {
                 cell.classList.add('output-zone');
                 cell.textContent = 'Salida';
-            } else if (Math.random() > 0.6) {
+            } else if (Math.random() > 0.3) {
                 const plushie = document.createElement('div');
+                const n=Math.floor(Math.random()*3);
+                plushie.setAttribute("n",n);
                 plushie.classList.add('plushie');
-                plushie.textContent = '🧸';
+                plushie.style.backgroundImage="url("+this.images[n]+")";
                 cell.appendChild(plushie);
             }
 
             this.grid.appendChild(cell);
         }
+        console.log(this.grid.style.top)
     }
-
-    createClaw() {
-        const claw = document.createElement('div');
-        claw.classList.add('claw');
-        this.grid.querySelector(`[data-index="${this.clawPosition.y * this.gridSize + this.clawPosition.x}"]`).appendChild(claw);
-    }
+    
 
     setupEventListeners() {
         this.coinButton.addEventListener('click', () => this.insertCoin());
         
-        document.addEventListener('keydown', (event) => {
+        document.addEventListener('keypress', (event) => {
             if (this.state.coins === 0) return;
-
             switch(event.key) {
                 case 'w': this.moveClaw(0, -1); break;
                 case 's': this.moveClaw(0, 1); break;
                 case 'a': this.moveClaw(-1, 0); break;
                 case 'd': this.moveClaw(1, 0); break;
-                case ' ': this.grabPlushie(); break;
+                case 'k': this.grabPlushie(); break;
             }
         });
     }
@@ -109,47 +101,67 @@ class ClawMachine {
             this.machineStatus.style.color = 'green';
         }
     }
-
+    
     moveClaw(dx, dy) {
-        const newX = Math.max(0, Math.min(this.gridSize - 1, this.clawPosition.x + dx));
-        const newY = Math.max(0, Math.min(this.gridSize - 1, this.clawPosition.y + dy));
-
-        const currentCell = this.grid.querySelector(`[data-index="${this.clawPosition.y * this.gridSize + this.clawPosition.x}"]`);
-        const claw = currentCell.querySelector('.claw');
-        currentCell.removeChild(claw);
-
-        this.clawPosition = { x: newX, y: newY };
-        const newCell = this.grid.querySelector(`[data-index="${this.clawPosition.y * this.gridSize + this.clawPosition.x}"]`);
-        newCell.appendChild(claw);
+        const garra =document.getElementById("garra");
+        this.clawY += dy;
+        garra.style.top =this.clawY+"px";
+        this.clawX += dx;
+        garra.style.left =this.clawX+"px";
+        if(this.clawY<-30){
+            this.clawY =-30;
+            garra.style.top ="-30px";
+        }else if(this.clawY>273){
+            this.clawY =273;
+            garra.style.top ="273px";
+        }
+        if(this.clawX<0){
+            this.clawX =0;
+            garra.style.left ="0px";
+        }else if(this.clawX>304){
+            this.clawX =304;
+            garra.style.left ="304px";
+        }
     }
 
     grabPlushie() {
         if (!this.state.useAttempt()) return;
 
-        const currentCell = this.grid.querySelector(`[data-index="${this.clawPosition.y * this.gridSize + this.clawPosition.x}"]`);
+        const currentCell = this.grid.querySelector(`[data-index="${parseInt(this.clawY/110) * this.gridSize + parseInt(this.clawX/115)}"]`);
         const plushie = currentCell.querySelector('.plushie');
 
-        if (plushie && Math.random() > 0.5) {
+        if (plushie&&(
+                (plushie.getAttribute("n")==0 && this.clawX%115>25 && this.clawX%115<35 && this.clawY%110>16 && this.clawY%110<26)||
+                (plushie.getAttribute("n")==1 && this.clawX%115>22 && this.clawX%115<32 && this.clawY%110>16 && this.clawY%110<26)||
+                (plushie.getAttribute("n")==2 && this.clawX%115>27 && this.clawX%115<37 && this.clawY%110>2 && this.clawY%110<12)
+            )) {
             currentCell.removeChild(plushie);
-            this.state.incrementScore();
-            
-            // Move plushie to output zone
-            this.outputZone.appendChild(plushie);
+            const garra =document.getElementById("garra");
+            garra.style.backgroundImage="url("+this.images[plushie.getAttribute("n")]+")";
+            this.state.status="peluche agarrado";
+            this.clawX=265;
+            this.clawY=230;
+            garra.style.transition="all 0.5s ease";
+            garra.style.left ="265px";
+            garra.style.top ="230px";
+            setTimeout(() => (garra.style.transition="all 0s ease",garra.style.backgroundImage=null,this.state.resetGame(),this.updateDisplay(),this.machineStatus.style.color = 'red'), 1000);
         }
 
         this.updateDisplay();
 
         if (this.state.attempts === 0) {
             this.state.resetGame();
+            this.clawX=265;
+            this.clawY=230;
+            garra.style.left ="265px";
+            garra.style.top ="230px";
             this.machineStatus.textContent = this.state.status;
             this.machineStatus.style.color = 'red';
         }
     }
 
     updateDisplay() {
-        this.coinCount.textContent = this.state.coins;
         this.attemptCount.textContent = this.state.attempts;
-        this.scoreCount.textContent = this.state.score;
         this.machineStatus.textContent = this.state.status;
     }
 }
