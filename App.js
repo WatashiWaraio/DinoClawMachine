@@ -139,15 +139,18 @@ class ClawMachine {
             const garra =document.getElementById("garra");
             garra.style.backgroundImage="url("+this.images[plushie.getAttribute("n")]+")";
             this.state.status="peluche agarrado";
+            this.updateDisplay();
             this.clawX=265;
             this.clawY=230;
             garra.style.transition="all 0.5s ease";
             garra.style.left ="265px";
             garra.style.top ="230px";
-            setTimeout(() => (garra.style.transition="all 0s ease",garra.style.backgroundImage=null,this.state.resetGame(),this.updateDisplay(),this.machineStatus.style.color = 'red'), 1000);
+            setTimeout(() => (garra.style.transition=null,garra.style.backgroundImage=null,this.state.resetGame(),this.updateDisplay(),this.machineStatus.style.color = 'red'), 1000);
+        }else{
+            this.machineStatus.textContent = "intento fallido";
+            this.machineStatus.style.color = 'red';
+            setTimeout(() => (this.state.status = "Activo",this.machineStatus.style.color = 'green',this.updateDisplay()), 1000);
         }
-
-        this.updateDisplay();
 
         if (this.state.attempts === 0) {
             this.state.resetGame();
