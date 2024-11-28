@@ -2,7 +2,7 @@ class GameState {
     constructor() {
         this.coins = 0;
         this.attempts = 0;
-        this.status = 'Esperando Moneda';
+        this.status = 'Iniciando';
     }
 
     insertCoin() {
@@ -40,7 +40,11 @@ class ClawMachine {
         this.clawY=230;
         this.images=["'peluche1.png'","'peluche2.png'","'peluche3.png'"]
         this.initializeDOM();
-        this.setupEventListeners();
+        if(Math.random()>=0.1){
+            setTimeout(()=>(this.machineStatus.textContent="Esperando moneda",this.setupEventListeners()),3000);
+        }else{
+            setTimeout(()=>(this.machineStatus.textContent="Sistema averiado",this.machineStatus.style.color="red",this.setupEventListeners()),1000);
+        }
     }
 
     initializeDOM() {
@@ -55,7 +59,6 @@ class ClawMachine {
     }
 
     createGrid() {
-        this.grid.innerHTML = '';
         for (let i = 0; i < this.gridSize * this.gridSize; i++) {
             const cell = document.createElement('div');
             cell.classList.add('grid-cell');
@@ -80,10 +83,15 @@ class ClawMachine {
     
 
     setupEventListeners() {
-        this.coinButton.addEventListener('click', () => this.insertCoin());
+        this.coinButton.addEventListener('click', () => {
+            if(this.checkGrid()){
+                this.insertCoin();
+            }
+        });
         
         document.addEventListener('keypress', (event) => {
             if (this.state.coins === 0) return;
+
             switch(event.key) {
                 case 'w': this.moveClaw(0, -1); break;
                 case 's': this.moveClaw(0, 1); break;
@@ -145,15 +153,17 @@ class ClawMachine {
             garra.style.transition="all 0.5s ease";
             garra.style.left ="265px";
             garra.style.top ="230px";
-            setTimeout(() => (garra.style.transition=null,garra.style.backgroundImage=null,this.state.resetGame(),this.updateDisplay(),this.machineStatus.style.color = 'red'), 1000);
+            setTimeout(() => (garra.style.transition=null,garra.style.backgroundImage=null,this.checkGrid(),this.updateDisplay(),this.machineStatus.style.color = 'red'), 1000);
         }else{
             this.machineStatus.textContent = "intento fallido";
             this.machineStatus.style.color = 'red';
-            setTimeout(() => (this.state.status = "Activo",this.machineStatus.style.color = 'green',this.updateDisplay()), 1000);
+            if(this.state.attempts>0){
+                setTimeout(() => (this.state.status = "Activo",this.machineStatus.style.color = 'green',this.updateDisplay()), 1000);
+            }
         }
 
         if (this.state.attempts === 0) {
-            this.state.resetGame();
+            this.checkGrid();
             this.clawX=265;
             this.clawY=230;
             garra.style.left ="265px";
@@ -162,7 +172,19 @@ class ClawMachine {
             this.machineStatus.style.color = 'red';
         }
     }
-
+    checkGrid(){
+        this.state.resetGame();
+        for (let i = 0; i < this.gridSize**2; i++) {
+            const currentCell = this.grid.querySelector(`[data-index="${i}"]`);
+            const plushie = currentCell.querySelector('.plushie');
+            if (plushie){
+                return true;
+            }
+        }
+        this.state.status="Maquina vacia";
+        this.machineStatus.style.color="red";
+        return false;
+    }
     updateDisplay() {
         this.attemptCount.textContent = this.state.attempts;
         this.machineStatus.textContent = this.state.status;
